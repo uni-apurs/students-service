@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apurs.microservices.studentsservice.dto.StudentCreateDTO;
@@ -27,7 +28,10 @@ public class StudentRestController {
 	private StudentService studentService;
 	
 	@GetMapping("")
-	public List<StudentDTO> getStudent(){
+	public List<StudentDTO> getStudent(@RequestParam(required = false) String syllabusName){
+		if (!syllabusName.isEmpty())
+			return studentService.findStudentsBySyllabusName(syllabusName);
+		
 		return studentService.findAll();
 	}
 	

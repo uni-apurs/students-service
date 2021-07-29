@@ -5,9 +5,13 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,6 +20,7 @@ import com.apurs.microservices.studentsservice.dto.StudentDTO;
 import com.apurs.microservices.studentsservice.dto.StudentUpdateDTO;
 import com.apurs.microservices.studentsservice.model.Student;
 import com.apurs.microservices.studentsservice.repository.StudentRepository;
+import com.apurs.microservices.syllabusesservice.dto.SyllabusDTO;
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -24,6 +29,9 @@ public class StudentServiceImpl implements StudentService {
 	
 	private RestTemplate restTemplate = new RestTemplate();
 	private ModelMapper modelMapper = new ModelMapper();
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate = new JdbcTemplate();
 	
 	@Value("${app.syllabusesEndpoint}")
 	private String syllabusesEndpoint;
@@ -88,5 +96,29 @@ public class StudentServiceImpl implements StudentService {
 		studentRepository.deleteById(id);
 		return true;
 	}
-
+	
+	@Override
+	public List<StudentDTO> findStudentsBySyllabusName(String syllabusName) {
+		ResponseEntity<List<SyllabusDTO>> res = restTemplate.exchange(syllabusesEndpoint + "?name=" + syllabusName, HttpMethod.GET, null, new ParameterizedTypeReference<List<SyllabusDTO>>() {});
+		List<SyllabusDTO> matches = res.getBody();
+		
+		String inSql = "SELECT * FROM student WHERE \"syllabusId\" IN (";
+		for (SyllabusDTO match : matches) {
+			inSql += match.getId() + ", ";
+		}
+		inSql = inSql.substring(0, inSql.length() - 2) + ")";
+		
+		List<StudentDTO> students = new ArrayList<StudentDTO>();
+		
+		students = jdbcTemplate.query(inSql, (rs, rowNum) ->
+				new StudentDTO(
+					rs.getInt("id"),
+					rs.getInt("syllabusId"),
+					rs.getString("firstName"),
+					rs.getString("lastName"),
+					rs.getString("index")
+				));
+		
+		return students;
+	}
 }

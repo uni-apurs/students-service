@@ -12,4 +12,6 @@ public interface StudentService {
 	public abstract StudentDTO insert(StudentCreateDTO student) throws Exception;
 	public abstract StudentDTO update(StudentUpdateDTO student) throws Exception;
 	public abstract boolean delete(Integer id);
+	
+	public abstract List<StudentDTO> findStudentsBySyllabusName(String syllabusName);
 }
