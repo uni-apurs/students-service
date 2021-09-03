@@ -102,6 +102,9 @@ public class StudentServiceImpl implements StudentService {
 		ResponseEntity<List<SyllabusDTO>> res = restTemplate.exchange(syllabusesEndpoint + "?name=" + syllabusName, HttpMethod.GET, null, new ParameterizedTypeReference<List<SyllabusDTO>>() {});
 		List<SyllabusDTO> matches = res.getBody();
 		
+		if (res.getBody().isEmpty())
+			return null;
+		
 		String inSql = "SELECT * FROM student WHERE \"syllabusId\" IN (";
 		for (SyllabusDTO match : matches) {
 			inSql += match.getId() + ", ";

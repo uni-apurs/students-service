@@ -28,10 +28,10 @@ public class StudentRestController {
 	private StudentService studentService;
 	
 	@GetMapping("")
-	public List<StudentDTO> getStudent(@RequestParam(required = false) String syllabusName){
-		if (!syllabusName.isEmpty())
+	public List<StudentDTO> getStudents(@RequestParam(required = false) String syllabusName){
+		if (syllabusName != null)
 			return studentService.findStudentsBySyllabusName(syllabusName);
-		
+
 		return studentService.findAll();
 	}
 	
